@@ -9,3 +9,6 @@ $ cd consistent_hash
 $ make all
 $ make install DESTDIR=./bin
 ```
+
+#### 3.OpenResty/LuaJit实例
+- [x] [chash_test.lua](./chash_test.lua)
