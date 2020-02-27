@@ -5,4 +5,7 @@
 
 #### 2.如何编译
 ```
+$ cd consistent_hash
+$ make all
+$ make install DESTDIR=./bin
 ```
