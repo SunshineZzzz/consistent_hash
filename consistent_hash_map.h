@@ -15,10 +15,12 @@
 	#pragma warning(disable:4996)
 #endif
 
+// 虚拟节点数组大小
 #define temporary_buf_size 128
 
 using uint64 = uint64_t;
 
+// 释放内存
 template<typename T>
 inline void SafeDelete(T*& p)
 {
@@ -28,6 +30,8 @@ inline void SafeDelete(T*& p)
 		p = nullptr;
 	}
 }
+
+// 复制字符串，注意需要手动释放内存
 inline char* local_strdup(const char* in)
 {
 	assert(in != nullptr);
@@ -39,6 +43,7 @@ inline char* local_strdup(const char* in)
 template <typename T>
 struct city_hasher64
 {
+	// 返回结果类型
 	using result_type = uint64;
 
 	city_hasher64() = default;
@@ -49,6 +54,7 @@ struct city_hasher64
 	{
 		return CityHash64(str, size);
 	}
+	// 仿函数
 	result_type operator()(const T& node)
 	{
 		auto hashText = node->to_str();
@@ -57,19 +63,30 @@ struct city_hasher64
 };
 
 // 一致性哈希
+// T表示需要hash的对象
+// Hash表示hash生成器
+// Alloc内存分配器
 template <typename T, 
 	typename Hash, 
 	typename Alloc = std::allocator< std::pair<const typename Hash::result_type, T> > >
 class consistent_hash_map
 {
 public:
+	// hash结果类型
 	using key_type = typename Hash::result_type;
+	// m_nodes的类型
 	using map_type = typename std::map<key_type, T, std::less<key_type>, Alloc>;
+	// 就是T的类型
 	using value_type = typename map_type::value_type;
+	// T的引用类型
 	using reference = value_type&;
+	// T的常量引用类型
 	using const_reference = const value_type&;
+	// m_nodes的迭代器类型
 	using iterator = typename map_type::iterator;
+	// m_nodes的反向迭代器类型
 	using reverse_iterator = typename map_type::reverse_iterator;
+	// 内存分配器类型
 	using allocator_type = Alloc;
 
 public:
@@ -111,7 +128,11 @@ public:
 			return m_nodes.end();
 		}
 
+		// Iterator pointing to the first element that is not less than key. 
+		// If no such element is found, a past-the-end iterator 
+		// (see end()) is returned.
 		iterator it = m_nodes.lower_bound(hash);
+		// 直接返回第一个节点
 		if (it == m_nodes.end())
 		{
 			it = m_nodes.begin();
@@ -197,6 +218,7 @@ struct BaseNode
 	}
 };
 
+// 虚拟节点
 struct VirualWorkNode;
 // 真实节点
 struct WorkNode : public BaseNode
@@ -218,6 +240,7 @@ struct WorkNode : public BaseNode
 		m_virtualNodes.clear();
 	}
 
+	// 虚拟节点容器
 	std::list<VirualWorkNode*> m_virtualNodes;
 };
 
@@ -247,13 +270,16 @@ struct VirualWorkNode : public BaseNode
 		m_Node = nullptr;
 	}
 
+	// 指向的真实节点
 	WorkNode* m_Node;
 };
 
 // 一致性哈希的服务器
 struct Server
 {
+	// hash环中的对象类型
 	using ValueType = BaseNode*;
+	
 	// 一致性哈希的服务器名称
 	std::string m_serverName;
 	// 虚拟节点的个数
